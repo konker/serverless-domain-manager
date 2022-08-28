@@ -64,6 +64,7 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
         hostedZoneId: customDomainOptions.hostedZoneId,
         hostedZonePrivate: customDomainOptions.hostedZonePrivate,
         route53Profile: customDomainOptions.route53Profile,
+        route53RoleArn: customDomainOptions.route53RoleArn,
         route53Region: customDomainOptions.route53Region,
         preserveExternalPathMappings: customDomainOptions.preserveExternalPathMappings,
         securityPolicy: customDomainOptions.securityPolicy,
@@ -99,6 +100,14 @@ const constructPlugin = (customDomainOptions, multiple: boolean = false) => {
                         update: (toUpdate: object) => null,
                     },
                 },
+                request: async () => ({
+                    Credentials: {
+                        AccessKeyId: 'FooAccessKeyId',
+                        SecretAccessKey: 'FooSecretAccessKey',
+                        SessionToken: 'FooSessionToken',
+                        Expiration: 'FooExpiration',
+                    }
+                }),
             },
         },
         service: {
@@ -162,6 +171,26 @@ describe("Custom Domain Plugin", () => {
             // @ts-ignore
             expect(route53Wrapper.route53.config.credentials.profile).to.equal(route53ProfileConfig.route53Profile);
             expect(route53Wrapper.route53.config.region).to.equal(route53ProfileConfig.route53Region);
+        });
+    });
+
+    describe("custom route53 role ARN", () => {
+        it("uses the provided role ARN for route53", async () => {
+            const route53RoleConfig = {
+                route53RoleArn: "arn:aws:iam::111111111111:role/testrole",
+                route53Region: "area-53-zone",
+            };
+            const plugin = constructPlugin(route53RoleConfig);
+
+            plugin.initAWSResources();
+            const dc: DomainConfig = new DomainConfig(plugin.serverless.service.custom.customDomain);
+            const route53Wrapper = new Route53Wrapper(dc.route53Profile, dc.route53Region);
+            await route53Wrapper.assumeRole(route53RoleConfig.route53RoleArn, route53RoleConfig.route53Region);
+
+            expect(route53Wrapper.route53.config.credentials.accessKeyId).to.equal('FooAccessKeyId');
+            expect(route53Wrapper.route53.config.credentials.secretAccessKey).to.equal('FooSecretAccessKey');
+            expect(route53Wrapper.route53.config.credentials.sessionToken).to.equal('FooSessionToken');
+            expect(route53Wrapper.route53.config.region).to.equal(route53RoleConfig.route53Region);
         });
     });
 

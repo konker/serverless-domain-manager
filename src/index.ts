@@ -190,8 +190,12 @@ class ServerlessCustomDomain {
     public async createDomain(domain: DomainConfig): Promise<void> {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
         const creationProgress = Globals.v3Utils && Globals.v3Utils.progress.get(`create-${domain.givenDomainName}`);
-        const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
         const acm = new ACMWrapper(domain.endpointType);
+        const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
+        if (domain.route53RoleArn) {
+            await route53.assumeRole(domain.route53RoleArn, domain.route53Region);
+        }
+
         try {
             if (domain.tlsTruststoreUri) {
                 await this.s3Wrapper.assertTlsCertObjectExists(domain);
@@ -236,6 +240,10 @@ class ServerlessCustomDomain {
     public async deleteDomain(domain: DomainConfig): Promise<void> {
         domain.domainInfo = await this.apiGatewayWrapper.getCustomDomainInfo(domain);
         const route53 = new Route53Wrapper(domain.route53Profile, domain.route53Region);
+        if (domain.route53RoleArn) {
+            await route53.assumeRole(domain.route53RoleArn, domain.route53Region);
+        }
+
         try {
             if (domain.domainInfo) {
                 await this.apiGatewayWrapper.deleteCustomDomain(domain);

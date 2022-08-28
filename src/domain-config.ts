@@ -18,6 +18,7 @@ class DomainConfig {
     public createRoute53Record: boolean | undefined;
     public createRoute53IPv6Record: boolean | undefined;
     public route53Profile: string | undefined;
+    public route53RoleArn: string | undefined;
     public route53Region: string | undefined;
     public endpointType: string | undefined;
     public apiType: string | undefined;
@@ -46,6 +47,7 @@ class DomainConfig {
         this.createRoute53Record = evaluateBoolean(config.createRoute53Record, true);
         this.createRoute53IPv6Record = evaluateBoolean(config.createRoute53IPv6Record, true);
         this.route53Profile = config.route53Profile;
+        this.route53RoleArn = config.route53RoleArn;
         this.route53Region = config.route53Region;
         this.hostedZoneId = config.hostedZoneId;
         this.hostedZonePrivate = config.hostedZonePrivate;

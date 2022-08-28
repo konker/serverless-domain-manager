@@ -24,6 +24,31 @@ class Route53Wrapper {
     }
 
     /**
+     * Assume the given role in the given region
+     * @param roleArn: The ARN of the role to assume
+     * @param [region]: The region to use
+     */
+    public async assumeRole(roleArn: string, region?: string): Promise<void> {
+        // get credentials by assuming role
+        const result = await Globals.serverless.providers.aws.request('STS', 'assumeRole', {
+            RoleArn: roleArn,
+            RoleSessionName: 'serverless-domain-manager'
+        });
+        const assumedCredentialsConfig = {
+            credentials: {
+                accessKeyId: result.Credentials.AccessKeyId,
+                secretAccessKey: result.Credentials.SecretAccessKey,
+                sessionToken: result.Credentials.SessionToken,
+            },
+            region: region ?? this.route53.config.region,
+            httpOptions: this.route53.config.httpOptions
+        }
+
+        this.route53 = new Globals.serverless.providers.aws.sdk.Route53(assumedCredentialsConfig);
+        Globals.logInfo(`Assumed credentials for role: '${roleArn}' in region: '${assumedCredentialsConfig.region}'`);
+    }
+
+    /**
      * Change A Alias record through Route53 based on given action
      * @param action: String descriptor of change to be made. Valid actions are ['UPSERT', 'DELETE']
      * @param domain: DomainInfo object containing info about custom domain

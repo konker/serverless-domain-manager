@@ -9,6 +9,7 @@ export interface CustomDomain { // tslint:disable-line
     createRoute53Record: boolean | undefined;
     createRoute53IPv6Record: boolean | undefined;
     route53Profile: string | undefined;
+    route53RoleArn: string | undefined;
     route53Region: string | undefined;
     endpointType: string | undefined;
     apiType: string | undefined;
@@ -60,7 +61,8 @@ export interface ServerlessInstance { // tslint:disable-line
                     update(toUpdate: object): void,
                 },
                 SharedIniFileCredentials: any,
-            }
+            },
+            request(service: string, method: string, params: any, options?: any),
             getCredentials(),
             getRegion(),
         },
