@@ -1,4 +1,5 @@
 import Globals from "./globals";
+import * as readline from "readline/promises";
 
 /**
  * Stops event thread execution for given number of seconds.
@@ -37,7 +38,25 @@ function evaluateBoolean(value: any, defaultValue: boolean): boolean {
     throw new Error(`${Globals.pluginName}: Ambiguous boolean config: "${value}"`);
 }
 
+/**
+ * Prompts the user to enter an MFA token.
+ *
+ * @param {string} mfaSerial The MFA serial to prompt for
+ * @param {typeof process.stderr} [stderr] Stream to write the prompt to, defaults to process.stderr
+ * @param {typeof process.stdin} [stdin] Stream to read the response from, defaults to process.stdin
+ * @returns The MFA token entered by the user
+ */
+async function promptForMfaToken(mfaSerial: string, stderr: typeof process.stderr = process.stderr, stdin: typeof process.stdin = process.stdin): Promise<string> {
+    const rl = readline.createInterface({ input: stdin, output: stderr });
+    const answer = await rl.question(`Enter MFA token for ${mfaSerial}: `);
+    const token = answer.replace(/[^0-9]/, '');
+    rl.close();
+
+    return token;
+}
+
 export {
     evaluateBoolean,
     sleep,
+    promptForMfaToken,
 };

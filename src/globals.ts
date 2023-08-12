@@ -1,6 +1,7 @@
 import {ServerlessInstance, ServerlessOptions, ServerlessUtils} from "./types";
 import {fromIni} from "@aws-sdk/credential-providers";
 import {ConfiguredRetryStrategy} from "@aws-sdk/util-retry";
+import {promptForMfaToken} from "./utils";
 
 export default class Globals {
 
@@ -72,7 +73,7 @@ export default class Globals {
     }
 
     public static async getProfileCreds(profile: string) {
-        return await fromIni({profile})();
+        return await fromIni({profile, mfaCodeProvider: promptForMfaToken })();
     }
 
     public static getRetryStrategy(attempts: number = 3, delay: number = 3000, backoff: number = 500) {
